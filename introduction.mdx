@@ -1,0 +1,63 @@
+---
+title: "Bridgex: Desktop File-to-Markdown Converter"
+sidebarTitle: "Introduction"
+description: "Bridgex is a native Rust desktop app for converting PDFs, spreadsheets, presentations, and images to Markdown with a live preview editor."
+---
+
+Bridgex is an open-source desktop application that converts common document and data formats into clean Markdown text. Built entirely in Rust using the [Freya UI](https://freyaui.dev/) framework and the [Markitdown-rs](https://crates.io/crates/markitdown) library, it provides a lightweight graphical interface where you can open a file, review the converted Markdown in a live preview pane, make edits in the code editor, and save the result — all without leaving the application. Version 0.2.1 is available for Windows, macOS, and Linux.
+
+## Key Features
+
+- **Native Rust desktop app** — Built with the Freya UI framework; no Electron or web runtime required. The application window title reads `Bridgex - Rust + Freya` and enforces a minimum size of 900×700 px for comfortable editing.
+- **Side-by-side editor and live preview** — The left pane is a syntax-highlighted Markdown code editor (powered by Freya's `CodeEditor` with `LanguageId::Markdown`). The right pane renders the same Markdown in real time using Freya's `MarkdownViewer`, so you see formatted output as you type.
+- **Automatic file-to-Markdown conversion** — Open a supported file and Bridgex converts it immediately via Markitdown-rs, populating the editor with the result.
+- **LLM image description** — JPEG image files can be converted with AI-generated descriptions by configuring an LLM API key through **Help → LLM API Key** (`Ctrl+K`). The API key, client, and model settings are persisted locally.
+- **Cross-platform** — Distributed as a Cargo crate (crates.io), a Python wheel (PyPI, Windows and macOS only), and a prebuilt binary (SourceForge, Linux).
+- **Keyboard-first workflow** — Core actions are accessible via `Ctrl+O` (open), `Ctrl+S` (save), and `Ctrl+Q` (exit), alongside a **File** and **Help** menu bar.
+
+## Supported File Formats
+
+Bridgex currently supports opening and converting the following formats:
+
+| Category | Extensions |
+|---|---|
+| Microsoft Excel | `.xlsx`, `.xls` |
+| Microsoft Word | `.docx` |
+| Microsoft PowerPoint | `.pptx` |
+| PDF | `.pdf` |
+| HTML | `.html`, `.htm` |
+| Images | `.jpg`, `.jpeg` |
+| CSV | `.csv` |
+| RSS / XML | `.xml`, `.rss`, `.atom` |
+| ZIP archives | `.zip` |
+
+## How Bridgex Is Distributed
+
+Bridgex 0.2.1 is published across three channels depending on your platform and preferred toolchain:
+
+- **crates.io** — The primary distribution. Install with `cargo install bridgex` on any supported platform.
+- **PyPI** — A Python wheel that bundles the compiled Rust binary. Supported on **Windows and macOS only** via `pip install bridgex`.
+- **SourceForge** — A prebuilt binary for **Linux** users at [sourceforge.net/projects/bridgex](https://sourceforge.net/projects/bridgex/).
+
+<Warning>
+  The `pip install bridgex` command is **not supported on Linux**. Linux users must either install via Cargo or download the prebuilt binary from SourceForge.
+</Warning>
+
+## What Bridgex Is Not
+
+Bridgex is purpose-built for file conversion and lightweight Markdown review. Per the project's own limitations statement:
+
+> Bridgex is not an IDE, text editor, Markdown editor, or full document viewer.
+
+It is designed to bridge users to Markdown conversion with a simple, minimal interface. It does not offer rich document editing, version history, plugin systems, or full document rendering fidelity for complex layouts. For those needs, a dedicated Markdown editor or document viewer would be more appropriate.
+
+## Get Started
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Install Bridgex via Cargo, pip, or the SourceForge binary for your platform.
+  </Card>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Open your first file and export Markdown in under two minutes.
+  </Card>
+</CardGroup>

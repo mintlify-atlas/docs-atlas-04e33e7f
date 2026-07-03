@@ -1,0 +1,117 @@
+---
+title: "Bridgex Interface: Editor, Preview, and Menus"
+sidebarTitle: "Interface Overview"
+description: "A tour of the Bridgex window layout, split-pane editor and preview, menu bar actions, and built-in popup dialogs."
+---
+
+Bridgex presents a clean, focused desktop interface built entirely in Rust with the Freya UI framework and styled with a GitHub Dark color theme. The window is divided into two equal panes — a live code editor on the left and a rendered Markdown preview on the right — with a compact menu bar running across the top. Every element of the interface is designed to stay out of your way so you can focus on reviewing and editing converted Markdown output.
+
+## Window Layout
+
+The main window requires a minimum of **900 × 700 pixels** to render correctly. The layout is fully reactive to window resizing within those bounds.
+
+<CardGroup cols={2}>
+  <Card title="Left Pane — Editor" icon="code">
+    A `CodeEditor` component occupying **50% of the window width**. Displays Markdown source with syntax highlighting, rendered using the **JetBrains Mono / Consolas** font family at 14 px. The line gutter is hidden for a cleaner look. The editor receives auto-focus on launch so you can start typing immediately. Background color is `rgb(20, 24, 34)` (GitHub Dark surface secondary).
+  </Card>
+  <Card title="Right Pane — Preview" icon="eye">
+    A `MarkdownViewer` component occupying the other **50% of the window width**. Renders the current editor content as formatted Markdown in real time. The viewer is wrapped in a `ScrollView` so long documents scroll independently. Code blocks use a dark background of `rgb(30, 34, 45)`.
+  </Card>
+</CardGroup>
+
+<Info>
+  Both panes sit inside a horizontal `rect` container that fills all remaining vertical space below the menu bar. Each pane has a `12 px` corner radius, a `1 px` border in `rgb(55, 61, 72)`, and `12–14 px` of internal padding.
+</Info>
+
+## Menu Bar
+
+The menu bar is a **30 px tall** horizontal strip that spans the full window width. Its background is transparent (`#00000000`) by default, so it blends into the window background color `rgb(10, 12, 17)`.
+
+Bridgex exposes two top-level menus: **File** and **Help**. Clicking a menu title opens its dropdown; moving the pointer to another menu title while a dropdown is open switches menus automatically.
+
+### File Menu
+
+| Action | Shortcut | Description |
+|--------|----------|-------------|
+| Save | `Ctrl+S` | Opens the native save dialog to write the current editor content as a `.md` file |
+| Open | `Ctrl+O` | Opens the native file picker to select a document for conversion |
+| Exit | `Ctrl+Q` | Terminates the application immediately |
+
+### Help Menu
+
+| Action | Shortcut | Description |
+|--------|----------|-------------|
+| About | `Ctrl+I` | Opens the About popup showing version, copyright, and project description |
+| Licenses | `Ctrl+L` | Opens the Licenses popup with embedded license texts |
+| LLM API Key | `Ctrl+K` | Opens the LLM Settings popup for configuring AI provider credentials |
+
+<Tip>
+  All keyboard shortcuts work globally — you do not need to click the menu bar first. Press `Ctrl+O` at any time to open a file, even while the cursor is inside the editor.
+</Tip>
+
+## Popups
+
+All three popups are **500 × 500 px modal dialogs** that float over the main window. They share a consistent layout built with the internal `PopupOwn` component and can be dismissed by pressing their shortcut key again or using the close control within the popup.
+
+### About Popup
+
+Opened with **Help → About** or `Ctrl+I`.
+
+The About popup displays:
+
+- The **Bridgex logo** image centered at the top
+- A short **description**: *"(GUI) Graphical interface for converting files to Markdown. Its objective is to simplify access to the Markitdown library through a straightforward, modular visual experience."*
+- Extended text describing supported formats and the intended workflow
+- **Version**: `0.2.1` (read from `CARGO_PKG_VERSION` at compile time)
+- **Copyright**: `Dev2Forge © 2026`
+- A **View Licences** button that closes the About popup and opens the Licenses popup
+- A **Buy Me a Coffee** button that opens an external browser link
+
+### Licenses Popup
+
+Opened with **Help → Licenses** or `Ctrl+L`.
+
+The Licenses popup embeds the full license texts for all three major components of Bridgex. Use the three buttons at the top to switch between them:
+
+| Button | License text | GitHub source link |
+|--------|-------------|-------------------|
+| **Bridgex** | GPLv3 license for Bridgex itself | `github.com/Dev2Forge/bridgex/blob/main/LICENSE` |
+| **Markitdown-rs** | License for the Markitdown-rs conversion library | `github.com/uhobnil/markitdown-rs/blob/master/LICENSE` |
+| **FreyaUI** | License for the Freya UI framework | `github.com/marc2332/freya/blob/main/LICENSE.md` |
+
+A GitHub icon button in the top-right corner opens the source URL for whichever license is currently displayed.
+
+### LLM Settings Popup
+
+Opened with **Help → LLM API Key** or `Ctrl+K`.
+
+This popup lets you configure AI-powered image description for JPEG files. It contains:
+
+- An **API Key** text input (auto-focused on open)
+- **Provider** selector buttons: `OpenAI`, `Gemini`, `Deepseek`
+- A free-text **Model** input accepting any provider-specific model string
+- **Suggested model** quick-select buttons that update the model field
+- A **Done** button that saves the config to disk and closes the popup
+- A status line showing the currently selected provider and model
+
+<Note>
+  The LLM configuration only applies to JPEG image conversion. Other file formats are not affected by this setting. See the [LLM Integration](/guides/llm-integration) guide for full details.
+</Note>
+
+## Color Theme
+
+Bridgex uses the **GitHub Dark** theme applied through Freya's theming system. The key color values are:
+
+| Role | Color |
+|------|-------|
+| Window background | `rgb(10, 12, 17)` |
+| Editor / surface secondary | `rgb(20, 24, 34)` |
+| Surface primary | `rgb(15, 18, 24)` |
+| Primary accent (blue) | `rgb(56, 139, 255)` |
+| Border | `rgb(55, 61, 72)` |
+| Primary text | `rgb(196, 206, 219)` |
+| Secondary text | `rgb(139, 147, 157)` |
+| Code block background | `rgb(30, 34, 45)` |
+| Blockquote background | `rgb(36, 42, 55)` |
+
+These values come directly from `GITHUB_COLORS` in `theme.rs` and are applied globally via `use_init_theme(github_app_theme)` at startup.

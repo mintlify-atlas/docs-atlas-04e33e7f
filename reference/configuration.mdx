@@ -1,0 +1,180 @@
+---
+title: "Bridgex Configuration File Reference"
+sidebarTitle: "Configuration"
+description: "Reference for the Bridgex LLM configuration file llm_settings.json — field definitions, file location by OS, and how settings are applied."
+---
+
+Bridgex stores exactly one configuration file on disk: `llm_settings.json`. This file holds the LLM provider credentials that Bridgex needs to generate text descriptions for JPEG images. All other aspects of the application — window size, last opened file, editor state, and theme — are not persisted between sessions. The sections below document the file's location on each platform, its JSON schema, what each field controls, and how Bridgex reads and writes it at runtime.
+
+## File location
+
+The `config_path()` function in `llm_config.rs` resolves the configuration file location using a priority chain of environment variables:
+
+<Tabs>
+  <Tab title="Windows">
+    On Windows, Bridgex reads the `APPDATA` environment variable (typically `C:\Users\<username>\AppData\Roaming`) and stores the file at:
+
+    ```
+    %APPDATA%\Bridgex\llm_settings.json
+    ```
+
+    **Example resolved path:**
+    ```
+    C:\Users\alice\AppData\Roaming\Bridgex\llm_settings.json
+    ```
+  </Tab>
+  <Tab title="Linux and macOS">
+    On Linux and macOS, Bridgex reads the `HOME` environment variable and stores the file under the standard XDG-compatible configuration directory:
+
+    ```
+    ~/.config/bridgex/llm_settings.json
+    ```
+
+    **Example resolved paths:**
+    ```
+    /home/alice/.config/bridgex/llm_settings.json   # Linux
+    /Users/alice/.config/bridgex/llm_settings.json  # macOS
+    ```
+  </Tab>
+  <Tab title="Fallback">
+    If neither `APPDATA` nor `HOME` is set (unusual in practice), Bridgex falls back to the current working directory:
+
+    ```
+    llm_settings.json
+    ```
+
+    <Warning>
+      The fallback path is relative to the process working directory at launch time, which may vary. It is best to ensure the standard environment variables are set so the file lands in a predictable location.
+    </Warning>
+  </Tab>
+</Tabs>
+
+<Info>
+  Bridgex creates any missing parent directories automatically via `fs::create_dir_all` when saving the configuration for the first time. You do not need to create the `Bridgex` or `bridgex` directory manually.
+</Info>
+
+## File format
+
+`llm_settings.json` is a UTF-8 JSON object with three string fields. Bridgex uses `serde_json::to_string_pretty` when writing, so the file is human-readable and easy to edit manually.
+
+```json
+{
+  "llm_api_key": "sk-...",
+  "llm_client": "openai",
+  "llm_model": "gpt-4o"
+}
+```
+
+<Note>
+  If the file does not exist or cannot be parsed, `LLMConfig::load()` silently returns the `Default` implementation, which sets all three fields to empty strings. Bridgex will function normally for all non-image conversions in this state.
+</Note>
+
+## Field reference
+
+### `llm_api_key`
+
+| Property | Value |
+|---|---|
+| Type | `string` |
+| Required | No — an empty string disables LLM for image conversion |
+| Example | `"sk-proj-abc123..."` |
+
+The API key used to authenticate requests to the selected LLM provider. This value is set as an environment variable immediately before any image-description call: `OPENAI_API_KEY`, `GEMINI_API_KEY`, or `DEEPSEEK_API_KEY` depending on `llm_client`. It is stored in plain text on disk; treat this file like any other credential file and restrict its permissions on shared systems.
+
+---
+
+### `llm_client`
+
+| Property | Value |
+|---|---|
+| Type | `string` |
+| Required | No — an empty string disables LLM |
+| Valid values | `"openai"`, `"gemini"`, `"deepseek"` |
+| Example | `"openai"` |
+
+Identifies the LLM provider. `converter.rs` matches this value with a `match` statement to determine which environment variable to set and which API endpoint Markitdown-rs contacts. Any value that does not match the three recognised strings is silently ignored and LLM features are disabled for that conversion.
+
+---
+
+### `llm_model`
+
+| Property | Value |
+|---|---|
+| Type | `string` |
+| Required | No — an empty string disables LLM |
+| Example | `"gpt-4o"`, `"gemini-2.0-flash"` |
+
+The model identifier passed directly to Markitdown-rs as `ConversionOptions::llm_model`. Bridgex does not validate this string; any value accepted by the chosen provider's API can be used. Common examples by provider:
+
+<Tabs>
+  <Tab title="OpenAI">
+    ```json
+    {
+      "llm_client": "openai",
+      "llm_model": "gpt-4o"
+    }
+    ```
+  </Tab>
+  <Tab title="Gemini">
+    ```json
+    {
+      "llm_client": "gemini",
+      "llm_model": "gemini-2.0-flash"
+    }
+    ```
+  </Tab>
+  <Tab title="DeepSeek">
+    ```json
+    {
+      "llm_client": "deepseek",
+      "llm_model": "deepseek-chat"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## How Bridgex uses the configuration
+
+<Steps>
+  <Step title="Load at startup">
+    `app()` calls `LLMConfig::load()` once when the application starts. The three fields are placed into Freya `use_state` hooks (`llm_api_key`, `llm_client`, `llm_model`) that drive the rest of the UI.
+  </Step>
+  <Step title="Edit via the LLM Settings popup">
+    Opening **Help → LLM API Key** (or `Ctrl+K` / `⌘+K`) displays the LLM Settings popup. The text fields in the popup are bound directly to the three state values.
+  </Step>
+  <Step title="Save when the user clicks Done">
+    When the user confirms the popup, the `save_llm_config` closure constructs a new `LLMConfig` from the current state values and calls `config.save()`, which serialises the struct to JSON and writes it to the platform-appropriate path.
+  </Step>
+  <Step title="Apply during JPEG conversion">
+    When `convert_from_path()` is called for a `.jpg` file and all three fields are non-empty, it sets the matching provider environment variable and passes `llm_client` and `llm_model` to `ConversionOptions` before calling `MarkItDown::new().convert()`.
+  </Step>
+</Steps>
+
+## What is not persisted
+
+<Warning>
+  Only LLM settings are saved to disk. The following application state is **not** persisted across sessions:
+
+  - Last opened file path
+  - Editor content
+  - Window size and position
+  - Any UI toggle state (open popups, menu state)
+
+  Each time Bridgex starts, it opens with an empty editor and reloads only the LLM configuration.
+</Warning>
+
+## Manual editing
+
+You can edit `llm_settings.json` directly with any text editor while Bridgex is not running. Bridgex reads the file only at startup, so changes made while the application is open will not take effect until you restart.
+
+```json
+{
+  "llm_api_key": "your-api-key-here",
+  "llm_client": "openai",
+  "llm_model": "gpt-4o"
+}
+```
+
+<Tip>
+  To disable LLM features without deleting the file, set `llm_client` to an empty string: `"llm_client": ""`. Bridgex treats an empty client as "no LLM configured" and skips all image-description calls.
+</Tip>

@@ -1,0 +1,169 @@
+---
+title: "AI Image Descriptions with LLM in Bridgex"
+sidebarTitle: "LLM Integration"
+description: "Configure OpenAI, Gemini, or Deepseek in Bridgex to generate AI-powered Markdown descriptions for JPEG images during conversion."
+---
+
+Bridgex integrates with large language model providers to generate natural-language descriptions of JPEG images during conversion. When you open a `.jpg` or `.jpeg` file with a configured LLM, the AI-generated description is appended to the Markdown output automatically — no extra steps required beyond setting up your API key once. This page explains exactly what the LLM integration does, which providers and models are supported, how to configure it, and where the settings are stored on disk.
+
+## What the LLM Integration Does
+
+<Note>
+  LLM integration in Bridgex is used **exclusively for JPEG image files** (`.jpg` / `.jpeg`). Opening any other file format — Excel, Word, PDF, HTML, CSV, PowerPoint, ZIP, or RSS/XML — does not trigger any LLM call, regardless of your configuration.
+</Note>
+
+When you open a JPEG file with a valid LLM configuration active, the conversion pipeline in `converter.rs` works as follows:
+
+1. Markitdown-rs performs its standard JPEG conversion (typically minimal text output).
+2. If the result does not already contain a `# Description:` heading, Bridgex asynchronously calls the configured LLM provider to generate a description of the image.
+3. The description is appended to the editor content under the heading `# Description:`.
+
+The final Markdown in your editor looks like this:
+
+```markdown
+# Description:
+A close-up photograph of a red maple leaf resting on wet pavement, 
+with shallow depth of field and soft bokeh in the background.
+```
+
+If the image conversion and the LLM call both produce no result, Bridgex falls back to the description text directly:
+
+```markdown
+# Description:
+<AI-generated text here>
+```
+
+## Supported Providers and Models
+
+Bridgex supports three LLM providers. Each has a set of suggested models available as quick-select buttons in the LLM Settings popup, but the model field accepts any free-text string — you can enter any model identifier your provider supports.
+
+<Tabs>
+  <Tab title="OpenAI">
+    **Provider key:** `openai`
+
+    **Environment variable set:** `OPENAI_API_KEY`
+
+    **Suggested models:**
+    - `gpt-4o`
+    - `gpt-4o-mini`
+    - `gpt-3.5-turbo`
+
+    Any other OpenAI model string (e.g. `gpt-4-turbo`) can be entered manually in the model field.
+  </Tab>
+  <Tab title="Gemini">
+    **Provider key:** `gemini`
+
+    **Environment variable set:** `GEMINI_API_KEY`
+
+    **Suggested models:**
+    - `gemini-2.0-flash`
+    - `gemini-1.5-flash`
+
+    Any other Gemini model string can be entered manually in the model field.
+  </Tab>
+  <Tab title="Deepseek">
+    **Provider key:** `deepseek`
+
+    **Environment variable set:** `DEEPSEEK_API_KEY`
+
+    **Suggested models:**
+    - `deepseek-1`
+    - `deepseek-2`
+
+    Any other Deepseek model string can be entered manually in the model field.
+  </Tab>
+</Tabs>
+
+## Environment Variables
+
+When a JPEG conversion with LLM is triggered, Bridgex sets the appropriate environment variable for the active provider at runtime from the saved configuration. You do not need to set these manually in your shell — Bridgex handles it:
+
+| Provider | Environment variable |
+|----------|---------------------|
+| OpenAI | `OPENAI_API_KEY` |
+| Gemini | `GEMINI_API_KEY` |
+| Deepseek | `DEEPSEEK_API_KEY` |
+
+Only the variable for the currently selected provider is set. The other two are left unchanged.
+
+## How to Configure LLM Settings
+
+<Steps>
+  <Step title="Open LLM Settings">
+    Press **`Ctrl+K`** or go to **Help → LLM API Key** in the menu bar. The LLM Settings popup opens with the API key input auto-focused.
+  </Step>
+  <Step title="Enter your API key">
+    Type or paste your API key into the **API Key** text field. The placeholder text shows the names of the relevant environment variables (`OPENAI_API_KEY`, `GEMINI_API_KEY`, `DEEPSEEK_API_KEY`) as a reminder.
+  </Step>
+  <Step title="Select a provider">
+    Click one of the three provider buttons: **OpenAI**, **Gemini**, or **Deepseek**. When you switch providers, the model field is automatically updated to the first suggested model for that provider if your current model string is not in that provider's suggested list.
+  </Step>
+  <Step title="Choose or enter a model">
+    Either click one of the **suggested model** quick-select buttons to fill the model field, or type a model name directly into the free-text **Model** input. The model field accepts any valid provider model string.
+  </Step>
+  <Step title="Save and close">
+    Click **Done**. The configuration is saved to disk immediately and the popup closes. The status line at the bottom of the popup shows the currently active provider and model before you close.
+  </Step>
+</Steps>
+
+## Configuration File
+
+Bridgex persists your LLM settings in a JSON file on disk. The file is read at startup and updated each time you click **Done** in the LLM Settings popup.
+
+**File location:**
+
+<Tabs>
+  <Tab title="Windows">
+    ```
+    %APPDATA%\Bridgex\llm_settings.json
+    ```
+    Typically resolves to `C:\Users\<username>\AppData\Roaming\Bridgex\llm_settings.json`.
+  </Tab>
+  <Tab title="Linux / macOS">
+    ```
+    ~/.config/bridgex/llm_settings.json
+    ```
+  </Tab>
+</Tabs>
+
+The directory is created automatically if it does not exist. If neither `APPDATA` (Windows) nor `HOME` (Linux/macOS) environment variables are set, Bridgex falls back to writing `llm_settings.json` in the current working directory.
+
+**File format:**
+
+```json
+{
+  "llm_api_key": "sk-...",
+  "llm_client": "openai",
+  "llm_model": "gpt-4o"
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `llm_api_key` | string | Your API key for the selected provider |
+| `llm_client` | string | Provider identifier: `"openai"`, `"gemini"`, or `"deepseek"` |
+| `llm_model` | string | Model name string, e.g. `"gpt-4o"` or `"gemini-2.0-flash"` |
+
+You can edit this file manually in a text editor if needed. Bridgex reads it fresh on every launch.
+
+## Error Handling
+
+<Warning>
+  If the LLM call fails — because the API key is incorrect, the model name is invalid, the provider is unreachable, or there is no network connection — Bridgex appends the following message to the editor output instead of a description:
+
+  ```
+  # Description unavailable: check API key, provider, model and network.
+  ```
+
+  No dialog is shown. The error is visible directly in the editor so you can review and retry by opening the same file again after correcting your LLM settings.
+</Warning>
+
+## LLM Scope Reminder
+
+To be explicit: the LLM setting has **no effect** on any non-JPEG file. The `convert_from_path()` function checks the file extension and only enables LLM mode when:
+
+1. The extension is `.jpg` or `.jpeg` (`.jpeg` is normalised to `.jpg` internally).
+2. The `llm_api_key` field is non-empty after trimming whitespace.
+3. Both `llm_client` and `llm_model` are set and non-empty.
+
+All three conditions must be true simultaneously for an LLM call to occur.

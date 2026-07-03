@@ -1,0 +1,101 @@
+---
+title: "Converting Documents to Markdown with Bridgex"
+sidebarTitle: "Converting Files"
+description: "Step-by-step guide to opening and converting Excel, Word, PDF, HTML, CSV, and image files to Markdown in the Bridgex desktop app."
+---
+
+Bridgex converts a wide range of common document formats to Markdown in a single action: open a file and the converted Markdown appears in the editor immediately. The conversion is powered by the **Markitdown-rs** library, which handles the parsing and text extraction for each supported format. This page walks through the full conversion workflow, the available file filters, format-specific behavior, and the limitations you should be aware of before using Bridgex in your workflow.
+
+## Supported File Formats
+
+Bridgex supports the following formats. When you open the file picker, these are grouped into named filter categories to make selection easier:
+
+| Filter label | Extensions |
+|---|---|
+| All allowed files | All of the below, combined |
+| Excel | `.xlsx`, `.xls` |
+| Word | `.docx` |
+| PowerPoint | `.pptx` |
+| PDF | `.pdf` |
+| HTML | `.html`, `.htm` |
+| Images | `.jpg`, `.jpeg` |
+| CSV | `.csv` |
+| RSS / XML | `.xml`, `.rss`, `.atom` |
+| ZIP | `.zip` |
+
+<Info>
+  The **All allowed files** filter is always listed first and includes every extension from the other categories. Use it when you are not sure which filter to choose, or to browse a folder that contains mixed file types.
+</Info>
+
+## Conversion Workflow
+
+<Steps>
+  <Step title="Open the file picker">
+    Press `Ctrl+O` or go to **File → Open** in the menu bar. The native file picker for your operating system appears, pre-configured with the filters listed above.
+  </Step>
+  <Step title="Select a file">
+    Navigate to your file and select it. Only file types in the supported filter list are shown. If the **All allowed files** filter is active, all supported extensions are visible at once. Click **Open** (or equivalent on your OS) to confirm.
+  </Step>
+  <Step title="Conversion runs automatically">
+    As soon as you confirm the selection, Bridgex calls `convert_from_path()` with the file path and your saved LLM configuration. No additional action is required — the conversion begins immediately.
+  </Step>
+  <Step title="Result appears in the editor">
+    The converted Markdown text replaces whatever was in the left editor pane. The right preview pane re-renders immediately to show the formatted output. The source file path is stored internally so the save dialog can suggest a matching `.md` filename.
+  </Step>
+  <Step title="Review and edit">
+    Inspect the converted Markdown in the editor and make any changes you need. The preview pane updates live as you type. When satisfied, press `Ctrl+S` or go to **File → Save** to write the output to disk.
+  </Step>
+</Steps>
+
+<Warning>
+  Conversion runs synchronously on the main thread. During conversion of large or complex files — for example, dense multi-sheet Excel workbooks or long PDFs — the application window may appear temporarily unresponsive. This is expected behavior; the app will recover once conversion finishes.
+</Warning>
+
+## Format-Specific Behavior
+
+### JPEG Images (without LLM)
+
+When a `.jpg` or `.jpeg` file is opened and no LLM is configured (or the API key field is empty), Markitdown-rs performs a basic conversion. For images, this typically yields minimal Markdown — usually just file metadata or an empty result — because image content requires AI description to be meaningful.
+
+### JPEG Images (with LLM configured)
+
+When a `.jpg` or `.jpeg` file is opened **and** a valid LLM provider, model, and API key are configured, Bridgex appends an AI-generated image description to the Markdown output under a dedicated heading:
+
+```markdown
+# Description:
+A photograph of a mountain landscape at golden hour, with snow-capped peaks...
+```
+
+The description is fetched from your configured provider (OpenAI, Gemini, or Deepseek) after the base conversion. If the description cannot be retrieved — due to a wrong API key, unavailable model, or network issue — the following message is appended instead:
+
+```
+# Description unavailable: check API key, provider, model and network.
+```
+
+See the [LLM Integration](/guides/llm-integration) guide for instructions on setting up a provider.
+
+### All Other Formats
+
+Excel, Word, PowerPoint, PDF, HTML, CSV, RSS/XML, and ZIP files are converted using Markitdown-rs directly, without any LLM involvement. The converter extracts text content and structure from each format and produces Markdown output. The quality and completeness of the output depends on the source file's structure and the capabilities of Markitdown-rs for that format.
+
+## Error Handling
+
+If a file cannot be converted, Bridgex writes a descriptive error message into the editor pane rather than showing a dialog. This keeps the workflow uninterrupted — you can see exactly what went wrong and try a different file immediately.
+
+Common error strings you may see:
+
+- `Conversion failed: <error detail>` — a general conversion error returned by Markitdown-rs
+- `Conversion failed for JPEG image: <error detail>` — a JPEG-specific conversion failure
+- `Unsupported file type or unsupported format for markitdown-rs.` — the file extension was not recognised by the converter
+
+## Limitations
+
+<Warning>
+  Bridgex is **not an IDE, text editor, Markdown editor, or full document viewer**. It is designed to bridge users to Markdown conversion with lightweight editing and a simple interface. The following limitations apply:
+</Warning>
+
+- Only the file formats listed above are supported. Other formats will produce an unsupported-format error in the editor.
+- Image conversion without LLM configuration produces limited results — JPEG is the only image format supported.
+- Conversion is synchronous; very large files may cause a brief unresponsive period.
+- There is no batch conversion — files are opened and converted one at a time.
+- The editor does not have find-and-replace, multi-cursor, or other advanced IDE features. It is intended for light review and touch-up of converted output only.

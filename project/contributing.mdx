@@ -1,0 +1,202 @@
+---
+title: "Contributing to Bridgex: Issues, PRs, and Dev Setup"
+sidebarTitle: "Contributing"
+description: "How to report bugs, suggest features, and submit pull requests to Bridgex. Includes local Rust dev setup and coding standards."
+---
+
+Bridgex is an open-source Rust desktop application, and contributions of all kinds are welcome — whether that's a detailed bug report, a feature suggestion, a documentation fix, or a pull request improving the codebase. This guide explains exactly how to get involved, from opening your first issue to setting up a local Rust development environment and submitting a well-structured PR.
+
+## Reporting Bugs
+
+If something doesn't work as expected, the best way to help is to open a detailed issue on GitHub so maintainers can reproduce and address the problem.
+
+<Steps>
+  <Step title="Open a GitHub Issue">
+    Navigate to the [Bridgex Issues page](https://github.com/Dev2Forge/bridgex/issues) and click **New issue**.
+  </Step>
+  <Step title="Describe the bug clearly">
+    Include a short, descriptive title and explain what you expected to happen versus what actually occurred.
+  </Step>
+  <Step title="Provide reproduction steps">
+    List the exact steps needed to reproduce the issue — the more specific, the better. Attach any relevant files or screenshots if applicable.
+  </Step>
+  <Step title="Include your environment details">
+    State your operating system (Windows, macOS, or Linux), Bridgex version (e.g. `v0.2.1`), and Rust toolchain version if you are running from source.
+  </Step>
+</Steps>
+
+<Tip>
+  Running `cargo --version` and `rustc --version` in your terminal gives you the exact toolchain version to include in a bug report when building from source.
+</Tip>
+
+---
+
+## Suggesting Features
+
+Have an idea that would make Bridgex more useful? Feature requests are tracked on GitHub Issues alongside bug reports.
+
+<Steps>
+  <Step title="Search for existing requests">
+    Before opening a new issue, check whether your idea has already been suggested. You can add a 👍 reaction to show support for existing requests.
+  </Step>
+  <Step title="Open a feature request issue">
+    Create a new issue with a clear title and a description of the feature you have in mind.
+  </Step>
+  <Step title="Explain the benefit">
+    Describe how the feature would benefit users of Bridgex and any relevant context — for example, file formats it would support or workflows it would improve.
+  </Step>
+</Steps>
+
+---
+
+## Submitting Pull Requests
+
+Code contributions are made through GitHub pull requests. All PRs are reviewed before merging, so please be open to feedback and willing to iterate.
+
+<Steps>
+  <Step title="Fork the repository">
+    Click **Fork** on the [Bridgex GitHub page](https://github.com/Dev2Forge/bridgex) to create your own copy of the repo.
+  </Step>
+  <Step title="Create a branch from main">
+    Always branch off `main` and give your branch a descriptive name:
+
+    ```bash
+    git checkout -b fix/markdown-output-encoding
+    ```
+  </Step>
+  <Step title="Make your changes">
+    Implement your fix or feature. Keep commits focused and atomic — one logical change per commit makes reviewing much easier.
+  </Step>
+  <Step title="Build and test your changes">
+    Run the release build to confirm nothing is broken before submitting:
+
+    ```bash
+    cd src/bridgex
+    cargo build --release
+    ```
+  </Step>
+  <Step title="Write clear commit messages">
+    Use concise, descriptive commit messages in the imperative mood (e.g. `Fix encoding error for UTF-8 CSV files`). Avoid vague messages like `fix stuff` or `update`.
+  </Step>
+  <Step title="Reference related issues">
+    In your PR description, reference any related issues using GitHub keywords such as `Closes #42` or `Related to #17` so they are linked automatically.
+  </Step>
+  <Step title="Open the pull request">
+    Push your branch and open a PR against the `main` branch of [Dev2Forge/bridgex](https://github.com/Dev2Forge/bridgex). Fill in the PR template if one is present.
+  </Step>
+</Steps>
+
+<Note>
+  All pull requests are subject to code review. Be open to constructive feedback — maintainers may request changes before a PR is merged.
+</Note>
+
+---
+
+## Development Setup
+
+Bridgex is a native Rust desktop application built with the [Freya UI](https://freyaui.dev/) framework. You will need a working Rust toolchain to build and run it locally.
+
+### Prerequisites
+
+- [Rust toolchain](https://rustup.rs/) (stable channel recommended)
+- `cargo` (included with the Rust toolchain)
+- Git
+
+### Cloning and Running Locally
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/Dev2Forge/bridgex.git
+    ```
+  </Step>
+  <Step title="Navigate to the Rust source directory">
+    The Rust application lives inside `src/bridgex`:
+
+    ```bash
+    cd bridgex/src/bridgex
+    ```
+  </Step>
+  <Step title="Run in development mode">
+    Use `cargo run` for a fast, unoptimised debug build — ideal when iterating on code:
+
+    ```bash
+    cargo run
+    ```
+  </Step>
+  <Step title="Run with Freya devtools (optional)">
+    The `dev` feature flag enables the Freya UI devtools panel, which is useful when working on UI components:
+
+    ```bash
+    cargo run --features dev
+    ```
+  </Step>
+  <Step title="Create a release build">
+    When you are ready to produce an optimised binary, use the release profile:
+
+    ```bash
+    cargo build --release
+    ```
+
+    The resulting binary is placed at `target/release/bridgex`.
+  </Step>
+</Steps>
+
+<Info>
+  Debug builds (`cargo run`) compile faster but are slower at runtime. Release builds (`cargo build --release`) take longer to compile but produce the optimised binary that end users run.
+</Info>
+
+---
+
+## Coding Standards
+
+Bridgex is written entirely in **Rust**. Please follow these conventions to keep the codebase consistent.
+
+<Accordion title="Formatting — rustfmt">
+  All Rust code must be formatted with `rustfmt` before submitting a PR. Run it with:
+
+  ```bash
+  cargo fmt
+  ```
+
+  The repository follows the standard Rust style as enforced by `rustfmt` with default settings. Unformatted code will be flagged during review.
+</Accordion>
+
+<Accordion title="Doc comments">
+  Add `///` doc comments to public functions, structs, and modules where the purpose is not immediately obvious from the name alone. Doc comments are particularly important for any types that form part of Bridgex's internal API.
+</Accordion>
+
+<Accordion title="Commit hygiene">
+  Keep commits small and focused. Each commit should represent one logical change. Squash work-in-progress commits before opening a PR so the history is clean and reviewable.
+</Accordion>
+
+<Accordion title="UI components — Freya">
+  UI code uses the [Freya](https://freyaui.dev/) framework. Follow the patterns already established in the codebase for component structure. When working on UI, running with `--features dev` enables the Freya devtools overlay for inspecting the element tree.
+</Accordion>
+
+---
+
+## Code of Conduct
+
+Bridgex follows the [Contributor Covenant Code of Conduct](https://github.com/Dev2Forge/bridgex/blob/main/CODE_OF_CONDUCT.md). All participants — contributors, maintainers, and community members — are expected to uphold these standards in every interaction.
+
+<CardGroup cols={2}>
+  <Card title="Positive behaviour" icon="circle-check">
+    Demonstrating empathy and kindness, being respectful of differing viewpoints, giving and gracefully accepting constructive feedback, and focusing on what is best for the community.
+  </Card>
+  <Card title="Unacceptable behaviour" icon="circle-xmark">
+    Trolling, insulting or derogatory comments, personal or political attacks, public or private harassment, and publishing others' private information without permission.
+  </Card>
+</CardGroup>
+
+Instances of abusive, harassing, or otherwise unacceptable behaviour may be reported to the community leaders at **bridgex@dev2forge.software**. All complaints will be reviewed and investigated promptly and fairly.
+
+<Warning>
+  Violations of the Code of Conduct may result in a warning, temporary ban, or permanent ban from the community depending on severity, as described in the full Code of Conduct document.
+</Warning>
+
+---
+
+## License
+
+By contributing to Bridgex, you agree that your contributions will be released under the project's **GNU General Public License v3.0 (GPL-3.0-only)**. This means all contributions become part of the GPL-3.0-licensed codebase and will remain free and open-source. See the [License page](/project/license) for full details.

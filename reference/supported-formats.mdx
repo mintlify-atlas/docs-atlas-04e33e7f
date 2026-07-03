@@ -1,0 +1,109 @@
+---
+title: "File Formats Supported by Bridgex"
+sidebarTitle: "Supported Formats"
+description: "Full list of file types Bridgex can convert to Markdown, including Excel, Word, PDF, HTML, CSV, RSS, ZIP, and JPEG images."
+---
+
+Bridgex delegates all file parsing to the [Markitdown-rs](https://crates.io/crates/markitdown) library and exposes every format it supports through a native file-open dialog. When you trigger **File → Open** (or press `Ctrl+O` / `⌘+O`), the dialog presents individual per-format filters as well as a combined "All allowed files" filter so you can browse everything at once. The sections below describe each supported format, its accepted extensions, and any special behaviour to be aware of.
+
+## File-format filters
+
+The file-open dialog in Bridgex is built from the following filters, taken directly from the `open_file()` function in `menu.rs`:
+
+<Tabs>
+  <Tab title="All formats at a glance">
+    | Filter label | Extensions | Category |
+    |---|---|---|
+    | Excel | `.xlsx`, `.xls` | Spreadsheets |
+    | Word | `.docx` | Documents |
+    | PowerPoint | `.pptx` | Presentations |
+    | PDF | `.pdf` | Portable documents |
+    | HTML | `.html`, `.htm` | Web pages |
+    | Images | `.jpg`, `.jpeg` | JPEG images |
+    | CSV | `.csv` | Comma-separated values |
+    | RSS / XML | `.xml`, `.rss`, `.atom` | Feeds and structured XML |
+    | ZIP | `.zip` | Archives |
+  </Tab>
+  <Tab title="Detailed notes">
+    | Format | Extensions | Conversion notes |
+    |---|---|---|
+    | Excel | `.xlsx`, `.xls` | Sheets are converted to Markdown tables. Each worksheet is rendered as a separate table block. |
+    | Word | `.docx` | Headings, paragraphs, and lists are preserved as Markdown syntax. |
+    | PowerPoint | `.pptx` | Slide text and titles are extracted sequentially into Markdown sections. |
+    | PDF | `.pdf` | Text content is extracted; complex layouts may affect fidelity. |
+    | HTML | `.html`, `.htm` | HTML tags are translated to equivalent Markdown elements. |
+    | Images | `.jpg`, `.jpeg` | Requires LLM configuration for a text description — see the [JPEG special case](#jpeg-images-and-llm-descriptions) section below. |
+    | CSV | `.csv` | Rows are rendered as a Markdown table. |
+    | RSS / XML | `.xml`, `.rss`, `.atom` | Feed entries and structured XML nodes are converted to Markdown. |
+    | ZIP | `.zip` | Archive contents are extracted and converted where supported formats are found inside. |
+  </Tab>
+</Tabs>
+
+## "All allowed files" filter
+
+The dialog also offers an **All allowed files** entry that combines every extension listed above into a single filter. This lets you navigate to any supported file without switching filter categories. Under the hood this is equivalent to selecting all nine individual filters simultaneously — no extensions outside that set are accepted through the dialog.
+
+## JPEG images and LLM descriptions
+
+JPEG files (`.jpg` and `.jpeg`) receive special handling in Bridgex because image pixels cannot be directly transcribed to text. The conversion outcome depends on whether an LLM provider is configured in **Help → LLM API Key**.
+
+<Tabs>
+  <Tab title="Without LLM configured">
+    When no LLM API key or provider is set, Markitdown-rs attempts a basic conversion. If no textual content can be extracted from the file, the editor will display:
+
+    ```
+    Conversion failed for JPEG image. Please check the image file and your LLM configuration.
+    ```
+
+    No `# Description:` section is added to the output.
+  </Tab>
+  <Tab title="With LLM configured">
+    When a valid `llm_api_key`, `llm_client`, and `llm_model` are all present, `converter.rs` sets the appropriate provider environment variable (`OPENAI_API_KEY`, `GEMINI_API_KEY`, or `DEEPSEEK_API_KEY`) before invoking `llm::get_llm_description()` via a blocking Tokio runtime.
+
+    A successful result appends the following block to the Markdown output:
+
+    ```markdown
+    # Description:
+    <LLM-generated description of the image>
+    ```
+
+    If the API call fails (wrong key, network error, unsupported model), the editor shows:
+
+    ```
+    # Description unavailable: check API key, provider, model and network.
+    ```
+  </Tab>
+</Tabs>
+
+<Tip>
+  Configure your LLM provider under **Help → LLM API Key** (or `Ctrl+K` / `⌘+K`) before opening JPEG files to get the best results from image conversion.
+</Tip>
+
+## Unsupported file types
+
+If a file is opened whose extension is not in the supported list, or if Markitdown-rs cannot parse a nominally supported file, Bridgex displays the following message in the editor:
+
+```
+Unsupported file type or unsupported format for markitdown-rs. Only JPEG images (.jpg/.jpeg) are supported for image descriptions.
+```
+
+<Warning>
+  Bridgex does not validate file extensions before passing a path to Markitdown-rs. If you rename an unsupported file to a supported extension, the converter will still fail and show the error above. Always use the original file with its correct extension.
+</Warning>
+
+## Format coverage summary
+
+<CardGroup cols={2}>
+  <Card title="Office documents" icon="file-word">
+    Excel (`.xlsx`, `.xls`), Word (`.docx`), and PowerPoint (`.pptx`) files are fully supported with structural Markdown output.
+  </Card>
+  <Card title="Web and data" icon="code">
+    HTML (`.html`, `.htm`) and CSV (`.csv`) convert cleanly; RSS/XML (`.xml`, `.rss`, `.atom`) feeds produce structured Markdown.
+  </Card>
+  <Card title="PDF" icon="file-pdf">
+    Portable Document Format (`.pdf`) text is extracted by Markitdown-rs. Scanned or image-only PDFs may produce limited output.
+  </Card>
+  <Card title="Images" icon="image">
+    Only JPEG (`.jpg`, `.jpeg`) is supported. PNG, GIF, WebP, and other image formats are not accepted by the file dialog.
+  </Card>
+</CardGroup>

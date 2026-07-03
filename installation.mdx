@@ -1,0 +1,188 @@
+---
+title: "Install Bridgex on Windows, macOS, and Linux"
+sidebarTitle: "Installation"
+description: "Install Bridgex via Cargo from crates.io, pip from PyPI on Windows or macOS, or download the prebuilt binary from SourceForge on Linux."
+---
+
+Bridgex 0.2.1 can be installed in three ways: through the Rust toolchain using Cargo (recommended for all platforms), through pip on Windows and macOS, or by downloading the prebuilt Linux binary from SourceForge. Choose the tab below that matches your preferred installation method.
+
+<Warning>
+  `pip install bridgex` is **only supported on Windows and macOS**. The PyPI wheel bundles a compiled Rust binary for those platforms. Linux users must use the SourceForge binary or build from source with Cargo.
+</Warning>
+
+<Tabs>
+  <Tab title="Cargo (All Platforms)">
+    ### Requirements
+
+    - A Rust toolchain with `cargo` installed. The stable Rust channel is recommended.
+    - On Linux, several system libraries are required before building (see the [Linux system dependencies](#linux-system-dependencies) section below).
+
+    ### Install from crates.io
+
+    The simplest way to install the latest published release is directly from [crates.io](https://crates.io/crates/bridgex):
+
+    ```sh
+    cargo install bridgex
+    ```
+
+    Once installed, launch the application from any terminal:
+
+    ```sh
+    bridgex
+    ```
+
+    ### Build from Source
+
+    Clone the repository and navigate to the Rust crate directory, then build or run the application:
+
+    <Steps>
+      <Step title="Clone the repository">
+        ```sh
+        git clone https://github.com/Dev2Forge/bridgex.git
+        ```
+      </Step>
+      <Step title="Navigate to the crate directory">
+        ```sh
+        cd bridgex/src/bridgex
+        ```
+      </Step>
+      <Step title="Build a release binary">
+        ```sh
+        cargo build --release
+        ```
+
+        The compiled binary will be at `./target/release/bridgex`.
+      </Step>
+      <Step title="Run or install locally">
+        <CodeGroup>
+          ```sh Run without installing
+          ./target/release/bridgex
+          ```
+
+          ```sh Run directly with Cargo
+          cargo run --release
+          ```
+
+          ```sh Install from local source tree
+          cargo install --path .
+          ```
+        </CodeGroup>
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="pip (Windows & macOS)">
+    ### Requirements
+
+    - Python 3.8 or later
+    - pip
+
+    The PyPI package bundles the precompiled Rust binary for Windows (`win_amd64`) and macOS (`arm64` and `x86_64`). No Rust toolchain is required.
+
+    <Warning>
+      This installation method is **not supported on Linux**. If you are on Linux, use the [SourceForge binary](https://sourceforge.net/projects/bridgex/) or install via Cargo instead.
+    </Warning>
+
+    ### Install from PyPI
+
+    ```sh
+    pip install bridgex
+    ```
+
+    ### Launch Bridgex
+
+    After installation, run the application using either of the following commands:
+
+    <CodeGroup>
+      ```sh Using the installed command
+      bridgex
+      ```
+
+      ```sh Using Python module syntax
+      python -m bridgex
+      ```
+    </CodeGroup>
+
+    <Note>
+      The `bridgex` entry point is registered by the PyPI package via `project.scripts` in `pyproject.toml`. If the binary is not found after installation, use `python -m bridgex` as a fallback.
+    </Note>
+  </Tab>
+
+  <Tab title="Linux Binary (SourceForge)">
+    ### Download the Prebuilt Binary
+
+    A prebuilt Linux binary is available from the official SourceForge project page:
+
+    **[sourceforge.net/projects/bridgex](https://sourceforge.net/projects/bridgex/)**
+
+    <Steps>
+      <Step title="Visit the SourceForge project page">
+        Navigate to [https://sourceforge.net/projects/bridgex/](https://sourceforge.net/projects/bridgex/) and download the latest Linux binary.
+      </Step>
+      <Step title="Make the binary executable">
+        ```sh
+        chmod +x bridgex
+        ```
+      </Step>
+      <Step title="Run Bridgex">
+        ```sh
+        ./bridgex
+        ```
+
+        Optionally, move the binary to a directory on your `$PATH` (for example `/usr/local/bin`) so you can run `bridgex` from anywhere.
+      </Step>
+    </Steps>
+
+    <Tip>
+      If you prefer to build from source on Linux, use the Cargo tab above and make sure all system dependencies listed below are installed first.
+    </Tip>
+  </Tab>
+</Tabs>
+
+---
+
+## Linux System Dependencies
+
+When building from source on a Debian/Ubuntu-based Linux system, you must install the following packages before running `cargo build`. The CI workflow uses these exact packages:
+
+```sh
+sudo apt update
+
+base_packages="build-essential libssl-dev pkg-config libglib2.0-dev libgtk-3-dev \
+  libudev-dev libxdo-dev libfreetype6-dev libfontconfig1-dev libegl1-mesa-dev \
+  libgl1-mesa-dev libwayland-egl1-mesa libgles2-mesa-dev libx11-dev libxcursor-dev \
+  libxrandr-dev libxi-dev libxkbcommon-dev libwayland-dev cmake"
+
+sudo apt install -y $base_packages libwebkit2gtk-4.1-dev || \
+  sudo apt install -y $base_packages libwebkit2gtk-4.0-dev
+```
+
+<Note>
+  The installer attempts `libwebkit2gtk-4.1-dev` first and falls back to `libwebkit2gtk-4.0-dev` for older distributions that do not carry the 4.1 version. Both variants satisfy the build requirements.
+</Note>
+
+The full list of required packages is:
+
+| Package | Purpose |
+|---|---|
+| `build-essential` | C/C++ compiler toolchain |
+| `libssl-dev` | TLS support |
+| `pkg-config` | Build system helper |
+| `libglib2.0-dev` | GLib base library |
+| `libgtk-3-dev` | GTK 3 UI toolkit |
+| `libudev-dev` | Device event support |
+| `libxdo-dev` | X11 automation library |
+| `libfreetype6-dev` | Font rendering |
+| `libfontconfig1-dev` | Font configuration |
+| `libegl1-mesa-dev` | EGL (GPU surface) |
+| `libgl1-mesa-dev` | OpenGL |
+| `libwayland-egl1-mesa` | Wayland EGL integration |
+| `libgles2-mesa-dev` | OpenGL ES 2 |
+| `libx11-dev` | Core X11 library |
+| `libxcursor-dev` | Cursor theming |
+| `libxrandr-dev` | Display configuration |
+| `libxi-dev` | X Input extension |
+| `libxkbcommon-dev` | Keyboard handling |
+| `libwayland-dev` | Wayland protocol |
+| `cmake` | Build system for native deps |
+| `libwebkit2gtk-4.1-dev` or `libwebkit2gtk-4.0-dev` | WebKit2GTK web renderer |

@@ -1,0 +1,85 @@
+{
+  "projectType": "general",
+  "projectName": "Bridgex",
+  "projectDescription": "A cross-platform Rust desktop application that provides a graphical interface for converting files (PDF, DOCX, XLSX, PPTX, CSV, HTML, images, and more) into Markdown using the Markitdown library.",
+  "theme": "almond",
+  "primaryColor": "#388BFF",
+  "lightColor": null,
+  "darkColor": "#0A0C11",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Using Bridgex",
+            "pages": [
+              "guides/interface-overview",
+              "guides/converting-files",
+              "guides/editing-and-saving",
+              "guides/llm-integration"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "reference/supported-formats",
+              "reference/keyboard-shortcuts",
+              "reference/configuration",
+              "reference/architecture"
+            ]
+          },
+          {
+            "group": "Project",
+            "pages": [
+              "project/contributing",
+              "project/license"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Native Rust desktop GUI built with Freya UI framework",
+    "File-to-Markdown conversion via the Markitdown-rs library",
+    "Support for Excel, Word, PowerPoint, PDF, HTML, CSV, images, and ZIP",
+    "Side-by-side Markdown editor and live preview pane",
+    "LLM-powered image description (OpenAI, Gemini, Deepseek)",
+    "Persistent LLM configuration saved locally as JSON",
+    "Cross-platform: Windows, macOS, and Linux",
+    "Available via crates.io, PyPI (Windows/macOS), and SourceForge (Linux)",
+    "GitHub Dark theme with keyboard shortcut support"
+  ],
+  "publicApiSurface": [
+    "convert_from_path(filename, llm_api_key, llm_client, llm_model) -> String",
+    "FileOwn::open_file_dialog(filters) -> Option<FileOwn>",
+    "FileOwn::save_file_dialog(default_name, filters) -> Option<PathBuf>",
+    "FileOwn::write_text_file(path, contents) -> io::Result<()>",
+    "LLMConfig::load() -> LLMConfig",
+    "LLMConfig::save(&self) -> io::Result<()>",
+    "MenuBarOwn::new(...) -> MenuBarOwn",
+    "MenuBarOwn::menu_bar() -> impl IntoElement",
+    "LLMApiKeyPopup::new(llm_api_key, llm_client, llm_model, save_config) -> LLMApiKeyPopup",
+    "AboutPopup::new(show_licenses) -> AboutPopup",
+    "LicencesPopup::new() -> LicencesPopup",
+    "PopupOwn::new_with_state(show_popup, title, show_close, content, on_close) -> PopupOwn",
+    "github_app_theme() -> Theme",
+    "github_editor_theme() -> EditorTheme",
+    "open_url(url: &str)",
+    "Keyboard shortcut: Ctrl+O (open file)",
+    "Keyboard shortcut: Ctrl+S (save file)",
+    "Keyboard shortcut: Ctrl+Q (exit)",
+    "Keyboard shortcut: Ctrl+I (about dialog)",
+    "Keyboard shortcut: Ctrl+L (licenses dialog)",
+    "Keyboard shortcut: Ctrl+K (LLM settings dialog)"
+  ]
+}

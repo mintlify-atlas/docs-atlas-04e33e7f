@@ -1,0 +1,163 @@
+---
+title: "Bridgex Internal Architecture and Module Guide"
+sidebarTitle: "Architecture"
+description: "Overview of Bridgex's Rust module layout, key dependencies, the file conversion pipeline, and UI state management for contributors."
+---
+
+Bridgex is a single-binary Rust application compiled from the `bridgex` crate (version 0.2.1). The codebase is intentionally small and modular: each concern lives in its own module, there is no shared global mutable state outside of Freya's reactive primitives, and the conversion pipeline is a straightforward function call chain. This page describes how the modules fit together, what each key dependency provides, how a file travels from disk to rendered Markdown, and how the release binary is optimised.
+
+## Module layout
+
+The source tree under `src/` is divided into five top-level modules, each with a clear single responsibility:
+
+<CardGroup cols={2}>
+  <Card title="app" icon="rectangle-terminal">
+    The root application component. Contains `app()`, which owns all top-level `use_state` hooks, initialises the theme, wires together the menu bar and popups, drives the editor, and registers the global keyboard handler.
+  </Card>
+  <Card title="logic" icon="gears">
+    Houses `converter.rs` and the single public function `convert_from_path()`. This is the only place in the codebase that calls into Markitdown-rs; all LLM orchestration for JPEG images also happens here.
+  </Card>
+  <Card title="theme" icon="palette">
+    Declares the `GITHUB_COLORS` constant (`ColorsSheet`), `github_app_theme()` (returns a Freya `Theme`), and `github_editor_theme()` (returns an `EditorTheme` for the code editor). No mutable state.
+  </Card>
+  <Card title="ui" icon="window">
+    Contains the individual UI components: `menu` (menu bar and `open_file()` dialog helper), `llm` (LLM API Key popup), `about` (About popup), `licenses` (Licenses popup), and `popup` (shared popup primitives).
+  </Card>
+</CardGroup>
+
+<Card title="utils" icon="toolbox">
+  A collection of utility modules:
+  - **`files`** — `FileOwn` (path wrapper), `Filter` (dialog filter type), and dialog helper functions (`open_file_dialog`, `save_file_dialog`, `write_text_file`).
+  - **`llm_config`** — `LLMConfig` struct with `load()` and `save()` for JSON persistence.
+  - **`constants`** — `DOCUMENT_EXTENSIONS` (`["pdf", "docx"]`) and `MENU_HEIGHT` (`30.0` px).
+  - **`helpers`** — `open_url()` wrapper around `webbrowser::open`.
+</Card>
+
+## Key dependencies
+
+The full dependency set is declared in `Cargo.toml`. The table below covers the dependencies that directly shape the application's architecture:
+
+| Crate | Version | Role |
+|---|---|---|
+| `freya` | `=0.4.0-rc.19` | UI framework (renderer, layout, reactive state, widgets). Enabled features: `markdown`, `code-editor`, `skia-engine`. |
+| `markitdown` | `0.1.11` | File-to-Markdown conversion library. Provides `MarkItDown`, `ConversionOptions`, and `llm::get_llm_description()`. |
+| `rfd` | `0.17.2` | Native file dialogs (open and save) via the system file picker. |
+| `tokio` | `1.0` | Async runtime. Used to `block_on` the `async` LLM description call inside the synchronous conversion function. Features: `rt`, `rt-multi-thread`, `macros`. |
+| `serde` + `serde_json` | `1.0` | Serialisation and deserialisation of `LLMConfig` to and from `llm_settings.json`. |
+| `webbrowser` | `1.2.1` | Opens URLs (e.g., repository links in the About popup) in the system default browser. |
+
+<Note>
+  The `freya` pin uses an exact version (`=0.4.0-rc.19`) to prevent accidental upgrades to incompatible release candidates. When upgrading Freya, update this pin explicitly and retest the full UI.
+</Note>
+
+## File conversion pipeline
+
+The journey from user action to rendered Markdown follows a linear path with no background threads involved except for the optional LLM image-description call:
+
+<Steps>
+  <Step title="User picks a file">
+    The user clicks **File → Open** or presses `Ctrl+O` / `⌘+O`. This calls `open_file()` in `menu.rs`, which builds a `Vec<Filter>` and delegates to `FileOwn::open_file_dialog()` (wrapping `rfd`). The result is an `Option<FileOwn>` containing the selected path.
+  </Step>
+  <Step title="State update triggers a re-render">
+    `open_file()` returns `Some(FileOwn)`, which is written into the `open_file_state: State<Option<FileOwn>>` hook in `app()`. Freya schedules a re-render.
+  </Step>
+  <Step title="Conversion is triggered">
+    At the top of the next render pass, `app()` reads `open_file_state`. If it holds `Some(file)`, it immediately calls:
+
+    ```rust
+    crate::logic::converter::convert_from_path(
+        file_path,
+        Some(llm_api_key.read().clone()),
+        Some(llm_client.read().clone()),
+        Some(llm_model.read().clone()),
+    )
+    ```
+  </Step>
+  <Step title="Markitdown-rs converts the file">
+    Inside `convert_from_path()`, a `MarkItDown::new()` instance is created and `.convert(filename, Some(options))` is called with a `ConversionOptions` struct that carries the normalised file extension, and optionally the LLM client and model strings.
+  </Step>
+  <Step title="LLM image description (JPEG only)">
+    If the file extension is `.jpg` (`.jpeg` is normalised to `.jpg` in code), and all three LLM fields are non-empty, `converter.rs` sets the appropriate provider environment variable and calls `llm::get_llm_description()` using a single-threaded `tokio` runtime built with `Builder::new_current_thread().enable_all().build()`. The description is appended under a `# Description:` heading.
+  </Step>
+  <Step title="Editor state is updated">
+    The returned `String` is written into the `CodeEditorData` rope:
+
+    ```rust
+    editor.write().rope = Rope::from_str(converted.as_str());
+    editor.write().parse();
+    ```
+
+    `open_file_state` is reset to `None` to prevent re-conversion on the next render.
+  </Step>
+  <Step title="Markdown preview re-renders">
+    The `MarkdownViewer` component in the right panel reads the rope content reactively and re-renders the formatted preview. The left panel's `CodeEditor` reflects the raw Markdown source.
+  </Step>
+</Steps>
+
+## UI state management
+
+Bridgex uses Freya's `use_state` hook for all mutable runtime state. There is no global singleton, no `Arc<Mutex<...>>`, and no message-passing channel. All state lives inside the single `app()` component and is passed into child components by cloning the `State<T>` handle (which is reference-counted internally by Freya).
+
+| State variable | Type | Purpose |
+|---|---|---|
+| `open_file_state` | `State<Option<FileOwn>>` | Carries the path of a newly selected file; reset to `None` after conversion. |
+| `save_requested` | `State<bool>` | Flag set by menu/shortcut; cleared after the save dialog completes. |
+| `exit_requested` | `State<bool>` | Flag set by menu/shortcut; triggers `std::process::exit(0)`. |
+| `current_file_path` | `State<Option<PathBuf>>` | Tracks the active file path, used as the default filename in the save dialog. |
+| `editor` | `State<CodeEditorData>` | The rope-based editor state including parsed syntax and cursor. |
+| `llm_api_key` | `State<String>` | Loaded from `LLMConfig` at startup; bound to the LLM settings popup. |
+| `llm_client` | `State<String>` | Provider identifier; one of `openai`, `gemini`, `deepseek`, or empty. |
+| `llm_model` | `State<String>` | Model name string passed to Markitdown-rs. |
+| `show_about` | `State<bool>` | Controls visibility of the About popup. |
+| `show_licenses` | `State<bool>` | Controls visibility of the Licenses popup. |
+| `show_llm_settings` | `State<bool>` | Controls visibility of the LLM Settings popup. |
+
+<Info>
+  Popup visibility is owned inside the respective popup structs (`AboutPopup`, `LicencesPopup`, `LLMApiKeyPopup`) and exposed as public `State<bool>` fields. `app()` clones those handles so that both the menu bar and the keyboard handler can toggle the same piece of state.
+</Info>
+
+## Release build profile
+
+The `[profile.release]` section in `Cargo.toml` applies aggressive size and speed optimisations:
+
+```toml
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "z"
+panic = "unwind"
+strip = true
+debug = false
+overflow-checks = false
+debug-assertions = false
+incremental = false
+```
+
+| Setting | Value | Effect |
+|---|---|---|
+| `lto` | `true` | Link-time optimisation across all crate boundaries, enabling cross-crate inlining and dead-code elimination. |
+| `opt-level` | `"z"` | Optimise for minimum binary size rather than maximum speed. |
+| `strip` | `true` | Remove all debug symbols from the final binary. |
+| `codegen-units` | `1` | Single codegen unit allows LLVM to optimise the entire crate as one unit, improving LTO effectiveness. |
+| `incremental` | `false` | Disabled in release to avoid incremental-compilation artefacts in the distributed binary. |
+
+<Tip>
+  During development, use `cargo run` (which uses the `[profile.dev]` profile with `incremental = true` and `opt-level = 0`) for fast recompilation. Reserve `cargo build --release` for distribution builds.
+</Tip>
+
+## Contributing: where to make changes
+
+<CardGroup cols={2}>
+  <Card title="Add a new file format" icon="file-plus">
+    Add a `Filter::new(...)` entry in `open_file()` (`src/ui/menu.rs`) and verify that Markitdown-rs supports the new extension. No changes to `converter.rs` are needed unless the format requires special pre-processing.
+  </Card>
+  <Card title="Add a new LLM provider" icon="robot">
+    Add a new `match` arm in `converter.rs` for the environment variable, and extend the `llm_client` validation if needed. Update the LLM Settings popup in `src/ui/llm.rs` to expose the new provider string.
+  </Card>
+  <Card title="Change the theme" icon="brush">
+    Edit `GITHUB_COLORS` in `src/theme.rs`. All UI components reference this constant or the derived `github_app_theme()` / `github_editor_theme()` functions, so a single edit propagates everywhere.
+  </Card>
+  <Card title="Add a new keyboard shortcut" icon="keyboard">
+    Add a new `Code::Key*` arm inside the `on_global_key_down` handler in `src/app.rs`, mirroring the pattern used by the existing six shortcuts.
+  </Card>
+</CardGroup>

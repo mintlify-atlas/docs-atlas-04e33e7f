@@ -1,0 +1,86 @@
+---
+title: "Bridgex Keyboard Shortcuts Reference"
+sidebarTitle: "Shortcuts"
+description: "All keyboard shortcuts in Bridgex for opening files, saving Markdown, navigating menus, and accessing settings dialogs."
+---
+
+Bridgex registers a global key-down handler on its root element so that shortcuts remain active regardless of which part of the interface is focused. The handler checks `event.modifiers.ctrl()` **or** `event.modifiers.meta()`, meaning every shortcut works with the `Ctrl` key on Windows and Linux and with the `⌘` (Command) key on macOS. No configuration is required — the shortcuts are hard-coded in the `on_global_key_down` closure inside `app.rs`.
+
+## Shortcut reference
+
+| Shortcut | macOS equivalent | Action |
+|---|---|---|
+| `Ctrl+O` | `⌘+O` | Open the native file dialog to select a file for conversion |
+| `Ctrl+S` | `⌘+S` | Open the native save dialog to write the current Markdown to a `.md` file |
+| `Ctrl+Q` | `⌘+Q` | Exit Bridgex immediately (`std::process::exit(0)`) |
+| `Ctrl+I` | `⌘+I` | Toggle the **About** popup |
+| `Ctrl+L` | `⌘+L` | Toggle the **Licenses** popup |
+| `Ctrl+K` | `⌘+K` | Toggle the **LLM Settings** popup |
+
+<Note>
+  All six shortcuts use the same modifier check — `ctrl()` **or** `meta()` — so there is no difference in behaviour between the two keys. Both modifiers trigger the same action on any platform.
+</Note>
+
+## Menu bar equivalents
+
+Every shortcut maps directly to a menu bar entry. You can use either the keyboard or the menu; both update the same application state.
+
+<Tabs>
+  <Tab title="File menu">
+    The **File** menu is located at the top-left of the menu bar. It contains three items:
+
+    | Menu item | Shortcut | Action |
+    |---|---|---|
+    | Open | `Ctrl+O` / `⌘+O` | Opens the file picker |
+    | Save | `Ctrl+S` / `⌘+S` | Opens the save-as dialog |
+    | Exit | `Ctrl+Q` / `⌘+Q` | Exits the application |
+
+    <Warning>
+      **Exit** closes the application immediately without a confirmation dialog. Make sure you have saved your Markdown before exiting.
+    </Warning>
+  </Tab>
+  <Tab title="Help menu">
+    The **Help** menu is located to the right of **File** in the menu bar. It contains three items:
+
+    | Menu item | Shortcut | Action |
+    |---|---|---|
+    | About | `Ctrl+I` / `⌘+I` | Toggles the About popup |
+    | Licenses | `Ctrl+L` / `⌘+L` | Toggles the third-party Licenses popup |
+    | LLM API Key | `Ctrl+K` / `⌘+K` | Toggles the LLM Settings popup |
+  </Tab>
+</Tabs>
+
+## How the shortcuts work internally
+
+The shortcut handler is attached at the application root via Freya's `on_global_key_down` event. The relevant portion of `app.rs` shows:
+
+```rust
+.on_global_key_down(move |event: Event<KeyboardEventData>| {
+    if event.modifiers.ctrl() || event.modifiers.meta() {
+        match event.code {
+            Code::KeyO => { /* open file */ }
+            Code::KeyS => { /* request save */ }
+            Code::KeyQ => { /* request exit */ }
+            Code::KeyI => { /* toggle About */ }
+            Code::KeyL => { /* toggle Licenses */ }
+            Code::KeyK => { /* toggle LLM Settings */ }
+            _ => {}
+        }
+    }
+})
+```
+
+<Info>
+  The save and exit actions work through boolean state flags (`save_requested` and `exit_requested`). Bridgex reads these flags on the next render pass, then performs the associated file-system or process operation and resets the flag. This keeps side effects out of the event handler itself.
+</Info>
+
+## Tips for efficient use
+
+<CardGroup cols={2}>
+  <Card title="Convert and save quickly" icon="bolt">
+    Press `Ctrl+O` to open a file, review the Markdown in the editor, then press `Ctrl+S` to save — all without touching the mouse.
+  </Card>
+  <Card title="Configure LLM before converting images" icon="key">
+    Open the LLM Settings popup with `Ctrl+K`, enter your API key, then open your JPEG file with `Ctrl+O` to get an AI-generated description.
+  </Card>
+</CardGroup>

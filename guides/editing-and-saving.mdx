@@ -1,0 +1,99 @@
+---
+title: "Edit and Save Converted Markdown in Bridgex"
+sidebarTitle: "Editing and Saving"
+description: "How to edit converted Markdown text in Bridgex's built-in code editor, use the live preview pane, and save the output as a .md file."
+---
+
+Once Bridgex converts a file, the resulting Markdown lands directly in the built-in code editor where you can review it, clean it up, and save it. The interface is intentionally minimal — a syntax-highlighted editor on the left and a live rendered preview on the right — so you can make targeted edits without the overhead of a full Markdown IDE. This page covers how the editor and preview panes work, how to save your output, the available keyboard shortcuts, and the boundaries of what the editor is designed to do.
+
+## Editor Pane
+
+The left pane is a `CodeEditor` component built into Freya. After any file conversion, the converted Markdown text is loaded into the editor automatically and is immediately editable.
+
+Key editor characteristics:
+
+- **Language**: Markdown syntax highlighting is active by default (`LanguageId::Markdown`).
+- **Font**: `Consolas` (with JetBrains Mono as the rendered fallback), 14 px.
+- **Theme**: GitHub Dark editor theme — background `rgb(15, 18, 24)`, text `rgb(196, 206, 219)`, cursor `rgb(56, 139, 255)`, selected-line background `rgb(22, 26, 36)`.
+- **Gutter**: Line numbers are hidden (`gutter: false`) for a cleaner reading experience.
+- **Focus**: The editor receives `a11y_auto_focus` so it is ready for keyboard input as soon as the app opens or a file is loaded.
+
+You can type freely, paste text, delete lines, and make any edits you need. The preview pane on the right reflects every keystroke in real time.
+
+<Note>
+  The editor content is stored as a `Rope` data structure (from the `text_edit` crate), which is efficient for large text but is entirely in memory. Changes are not auto-saved — use `Ctrl+S` or **File → Save** to persist your work.
+</Note>
+
+## Preview Pane
+
+The right pane is a `MarkdownViewer` wrapped in a `ScrollView`. It renders the current editor rope content as formatted Markdown using the following visual styling:
+
+| Element | Color / Style |
+|---------|--------------|
+| Body text | `rgb(196, 206, 219)` |
+| Code block background | `rgb(30, 34, 45)` |
+| Code block text | `rgb(225, 230, 240)` |
+| Blockquote background | `rgb(36, 42, 55)` |
+| Blockquote border | `rgb(72, 83, 101)` |
+| Horizontal rule | `rgb(85, 95, 112)` |
+
+The preview pane scrolls independently of the editor pane. Headings, code fences, blockquotes, bold and italic text, horizontal rules, and inline code are all rendered. The preview is read-only — editing is done exclusively in the left pane.
+
+<Tip>
+  Use the preview pane to verify that your Markdown renders correctly before saving. If headings or code blocks look wrong, the underlying Markdown syntax in the editor likely needs a small fix.
+</Tip>
+
+## Saving Your File
+
+Press **`Ctrl+S`** or select **File → Save** from the menu bar to open the native save dialog.
+
+<Steps>
+  <Step title="Trigger the save dialog">
+    Press `Ctrl+S` or click **File → Save**. The native OS save dialog opens. The dialog is pre-configured to filter for Markdown files (`.md`).
+  </Step>
+  <Step title="Confirm the filename">
+    Bridgex pre-fills the filename based on the source file that was converted:
+    - If a file was opened earlier in the session, the default name is the **source filename with the extension replaced by `.md`** (e.g., `report.xlsx` → `report.xlsx` is used as-is as the starting name, resolved to your chosen `.md` path).
+    - If no file was opened (you typed directly into the editor), the default name is **`document.md`**.
+
+    Edit the filename as needed, choose a destination folder, and click **Save**.
+  </Step>
+  <Step title="File is written to disk">
+    Bridgex writes the current editor content as plain UTF-8 text to the selected path. On success, the internal `current_file_path` is updated to the new save location, so future saves will suggest the same path.
+  </Step>
+</Steps>
+
+<Warning>
+  Only **Markdown (`.md`)** format is available in the save dialog. Bridgex does not support exporting to PDF, HTML, DOCX, or any other format from the editor.
+</Warning>
+
+## Keyboard Shortcuts
+
+All shortcuts use `Ctrl` on Windows and Linux. On macOS, Freya also accepts `Meta` (⌘) as the modifier.
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+O` | Open file picker to convert a new file |
+| `Ctrl+S` | Open save dialog to write editor content to `.md` |
+| `Ctrl+Q` | Exit the application |
+| `Ctrl+I` | Toggle the About popup |
+| `Ctrl+L` | Toggle the Licenses popup |
+| `Ctrl+K` | Toggle the LLM Settings popup |
+
+Shortcuts are registered as global key-down handlers on the root `rect` container, so they work regardless of which element has pointer focus.
+
+## Limitations
+
+Bridgex's editor is intentionally lightweight. It is designed for quick review and small corrections to converted output — not for authoring long Markdown documents from scratch.
+
+The following features are **not available** in the current editor:
+
+- Find and replace
+- Multi-cursor or column selection
+- Undo / redo history beyond what the underlying `Rope` supports
+- Line numbers (gutter is disabled)
+- Folding, auto-completion, or linting
+- Drag-and-drop of text
+- Spell checking
+
+For heavy Markdown editing, copy the saved `.md` file into a dedicated editor such as VS Code, Typora, or Obsidian after saving from Bridgex.

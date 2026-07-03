@@ -1,47 +1,114 @@
 ---
-title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+title: "Get Started with Bridgex in Minutes"
+sidebarTitle: "Quickstart"
+description: "Learn how to install Bridgex, open a document, and export your first Markdown file in under two minutes."
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
+Bridgex is designed for a fast, minimal workflow: open a file, review the converted Markdown, make any edits you need, and save. This guide walks you through that complete cycle from launch to your first saved `.md` file. No configuration is required for most formats — an API key is only needed if you want AI-generated descriptions for JPEG images.
 
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
+## Before You Begin
 
-## Prerequisites
+Make sure Bridgex is installed for your platform. If you have not installed it yet, see the [Installation](/installation) guide. For basic use (converting PDFs, spreadsheets, Word documents, PowerPoint files, HTML, CSV, XML/RSS, and ZIP archives), no API key or additional setup is needed.
 
-Before you begin, you must have:
+<Note>
+  Converting JPEG image files with AI-generated descriptions requires an LLM API key. You can configure this under **Help → LLM API Key** (`Ctrl+K`) at any time. See the [LLM Integration](/guides/llm-integration) guide for setup instructions.
+</Note>
 
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
+## Supported Formats
 
-## Get started
+Bridgex can open and convert the following file types:
+
+| Format | Extensions |
+|---|---|
+| Microsoft Excel | `.xlsx`, `.xls` |
+| Microsoft Word | `.docx` |
+| Microsoft PowerPoint | `.pptx` |
+| PDF | `.pdf` |
+| HTML | `.html`, `.htm` |
+| Images | `.jpg`, `.jpeg` |
+| CSV | `.csv` |
+| RSS / XML | `.xml`, `.rss`, `.atom` |
+| ZIP archives | `.zip` |
+
+## Convert Your First File
 
 <Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
+  <Step title="Launch Bridgex">
+    Start Bridgex from your terminal or from the installed application shortcut:
 
-    ```bash
-    npm install your-package
-    ```
+    <CodeGroup>
+      ```sh Cargo install / crates.io
+      bridgex
+      ```
+
+      ```sh pip install (Windows & macOS)
+      bridgex
+      ```
+
+      ```sh Run from source
+      cargo run --release
+      ```
+    </CodeGroup>
+
+    The application opens with the title **Bridgex - Rust + Freya** and a minimum window size of 900×700 px. You will see a menu bar at the top with **File** and **Help** menus, and an empty two-pane layout below.
   </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
 
-    ```bash
-    your-cli init
-    ```
+  <Step title="Open a file">
+    Use either of these methods to open a supported file:
+
+    - Press **`Ctrl+O`** (or **`Cmd+O`** on macOS)
+    - Click **File → Open** in the menu bar
+
+    A native file-picker dialog will appear, filtered to the supported formats listed above. Select your file and confirm.
   </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
 
-    ```bash
-    your-cli start
-    ```
+  <Step title="Review the converted Markdown">
+    Bridgex immediately converts the file using the Markitdown-rs library and populates the left-hand code editor with the resulting Markdown text. The right-hand pane renders a live formatted preview of the same content.
+
+    <Tip>
+      You do not need to click anything to trigger conversion — it happens automatically as soon as you select a file.
+    </Tip>
+  </Step>
+
+  <Step title="Edit the Markdown if needed">
+    The left pane is a fully editable Markdown code editor with syntax highlighting. Click anywhere in the editor and type to refine headings, fix formatting, remove unwanted content, or add your own notes. The preview on the right updates in real time as you make changes.
+  </Step>
+
+  <Step title="Save your Markdown file">
+    When you are satisfied with the output, save it using either:
+
+    - **`Ctrl+S`** (or **`Cmd+S`** on macOS)
+    - **File → Save** in the menu bar
+
+    A native save dialog will open. The default filename is derived from the original file you opened. Choose a location, confirm the `.md` extension, and click **Save**.
   </Step>
 </Steps>
 
-<Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
+## Keyboard Shortcuts Reference
 
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
+The table below summarises the keyboard shortcuts available in Bridgex, sourced directly from the application source code:
+
+| Shortcut | Action |
+|---|---|
+| `Ctrl+O` | Open a file |
+| `Ctrl+S` | Save the current Markdown |
+| `Ctrl+Q` | Exit the application |
+| `Ctrl+I` | Toggle the About dialog |
+| `Ctrl+L` | Toggle the Licenses dialog |
+| `Ctrl+K` | Toggle the LLM API Key settings |
+
+<Tip>
+  For the full keyboard shortcuts reference, see the [Keyboard Shortcuts](/reference/keyboard-shortcuts) page.
 </Tip>
+
+## Configuring LLM Image Descriptions
+
+If you are converting JPEG images and want Bridgex to include AI-generated descriptions in the Markdown output, you need to provide an LLM API key:
+
+1. Open **Help → LLM API Key** from the menu bar, or press `Ctrl+K`.
+2. Enter your API key, client name, and model identifier in the settings popup.
+3. Click **Save** — the configuration is persisted locally and applied to all subsequent image conversions.
+
+<Note>
+  LLM settings are optional. All other supported formats (PDF, DOCX, XLSX, PPTX, HTML, CSV, XML/RSS, ZIP) convert without any API key. For full setup details, see the [LLM Integration](/guides/llm-integration) guide.
+</Note>

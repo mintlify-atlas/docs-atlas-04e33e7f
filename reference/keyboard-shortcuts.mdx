@@ -1,7 +1,7 @@
 ---
-title: "Bridgex Keyboard Shortcuts Reference"
+title: "Bridgex Keyboard Shortcuts and Menu Bar Reference Guide"
 sidebarTitle: "Shortcuts"
-description: "All keyboard shortcuts in Bridgex for opening files, saving Markdown, navigating menus, and accessing settings dialogs."
+description: "All six Bridgex shortcuts — open, save, exit, About, Licenses, LLM settings — with Ctrl and ⌘ equivalents and their matching menu bar entries."
 ---
 
 Bridgex registers a global key-down handler on its root element so that shortcuts remain active regardless of which part of the interface is focused. The handler checks `event.modifiers.ctrl()` **or** `event.modifiers.meta()`, meaning every shortcut works with the `Ctrl` key on Windows and Linux and with the `⌘` (Command) key on macOS. No configuration is required — the shortcuts are hard-coded in the `on_global_key_down` closure inside `app.rs`.

@@ -13,7 +13,7 @@ The left pane is a `CodeEditor` component built into Freya. After any file conve
 Key editor characteristics:
 
 - **Language**: Markdown syntax highlighting is active by default (`LanguageId::Markdown`).
-- **Font**: `Consolas` (with JetBrains Mono as the rendered fallback), 14 px.
+- **Font**: `Consolas`, 14 px.
 - **Theme**: GitHub Dark editor theme — background `rgb(15, 18, 24)`, text `rgb(196, 206, 219)`, cursor `rgb(56, 139, 255)`, selected-line background `rgb(22, 26, 36)`.
 - **Gutter**: Line numbers are hidden (`gutter: false`) for a cleaner reading experience.
 - **Focus**: The editor receives `a11y_auto_focus` so it is ready for keyboard input as soon as the app opens or a file is loaded.
@@ -53,7 +53,7 @@ Press **`Ctrl+S`** or select **File → Save** from the menu bar to open the nat
   </Step>
   <Step title="Confirm the filename">
     Bridgex pre-fills the filename based on the source file that was converted:
-    - If a file was opened earlier in the session, the default name is the **source filename with the extension replaced by `.md`** (e.g., `report.xlsx` → `report.xlsx` is used as-is as the starting name, resolved to your chosen `.md` path).
+    - If a file was opened earlier in the session, the default name is the **source filename as-is** (e.g., `report.xlsx`). You can rename it in the dialog; the save filter ensures only `.md` is written.
     - If no file was opened (you typed directly into the editor), the default name is **`document.md`**.
 
     Edit the filename as needed, choose a destination folder, and click **Save**.

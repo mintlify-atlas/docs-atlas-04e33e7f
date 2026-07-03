@@ -1,7 +1,7 @@
 ---
-title: "File Formats Supported by Bridgex"
+title: "File Formats Supported by Bridgex for Markdown Conversion"
 sidebarTitle: "Supported Formats"
-description: "Full list of file types Bridgex can convert to Markdown, including Excel, Word, PDF, HTML, CSV, RSS, ZIP, and JPEG images."
+description: "Every file format Bridgex converts to Markdown: Excel, Word, PowerPoint, PDF, HTML, CSV, RSS/XML, ZIP, and JPEG images requiring LLM configuration."
 ---
 
 Bridgex delegates all file parsing to the [Markitdown-rs](https://crates.io/crates/markitdown) library and exposes every format it supports through a native file-open dialog. When you trigger **File → Open** (or press `Ctrl+O` / `⌘+O`), the dialog presents individual per-format filters as well as a combined "All allowed files" filter so you can browse everything at once. The sections below describe each supported format, its accepted extensions, and any special behaviour to be aware of.

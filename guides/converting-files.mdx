@@ -85,8 +85,9 @@ If a file cannot be converted, Bridgex writes a descriptive error message into t
 Common error strings you may see:
 
 - `Conversion failed: <error detail>` — a general conversion error returned by Markitdown-rs
-- `Conversion failed for JPEG image: <error detail>` — a JPEG-specific conversion failure
-- `Unsupported file type or unsupported format for markitdown-rs.` — the file extension was not recognised by the converter
+- `Conversion failed for JPEG image: <error detail>` — a JPEG-specific conversion error (returned when the converter raises an exception on a JPEG file)
+- `Conversion failed for JPEG image. Please check the image file and your LLM configuration.` — returned when the JPEG conversion produces no output and no LLM description could be generated
+- `Unsupported file type or unsupported format for markitdown-rs. Only JPEG images (.jpg/.jpeg) are supported for image descriptions.` — the file extension was not recognised by the converter
 
 ## Limitations
 

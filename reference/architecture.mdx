@@ -1,5 +1,5 @@
 ---
-title: "Bridgex Internal Architecture and Module Guide"
+title: "Bridgex Internal Architecture, Modules, and Build Reference"
 sidebarTitle: "Architecture"
 description: "Overview of Bridgex's Rust module layout, key dependencies, the file conversion pipeline, and UI state management for contributors."
 ---
@@ -139,6 +139,7 @@ incremental = false
 | `opt-level` | `"z"` | Optimise for minimum binary size rather than maximum speed. |
 | `strip` | `true` | Remove all debug symbols from the final binary. |
 | `codegen-units` | `1` | Single codegen unit allows LLVM to optimise the entire crate as one unit, improving LTO effectiveness. |
+| `panic` | `"unwind"` | Uses stack unwinding on panic, preserving the ability to catch panics at crate boundaries if needed. |
 | `incremental` | `false` | Disabled in release to avoid incremental-compilation artefacts in the distributed binary. |
 
 <Tip>

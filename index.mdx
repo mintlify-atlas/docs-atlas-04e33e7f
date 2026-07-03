@@ -1,10 +1,10 @@
 ---
-title: "Bridgex: Convert Any File to Markdown"
+title: "Bridgex: Rust Desktop App for File-to-Markdown Conversion"
 sidebarTitle: "Home"
-description: "Bridgex is a cross-platform Rust desktop app that converts PDF, DOCX, XLSX, PPTX, CSV, HTML, and images to Markdown with a live-preview editor."
+description: "Bridgex (v0.2.1) is an open-source Rust desktop app that converts PDF, DOCX, XLSX, PPTX, images, and more to Markdown with a built-in editor."
 ---
 
-Bridgex is an open-source desktop application built in Rust that gives you a graphical interface for converting common document formats into Markdown. It wraps the [Markitdown-rs](https://github.com/uhobnil/markitdown-rs) library in a clean split-pane window — file input on the left, live Markdown preview on the right — so you can convert, edit, and save without touching the command line.
+Bridgex is an open-source desktop application (v0.2.1) built in Rust with the [Freya](https://freyaui.dev/) UI framework. It wraps the [Markitdown](https://github.com/microsoft/markitdown) crate to convert common document formats into Markdown, then opens the result in a built-in editor so you can review, refine, and save — no command line required.
 
 <CardGroup cols={2}>
   <Card title="Installation" icon="download" href="/installation">
@@ -23,14 +23,14 @@ Bridgex is an open-source desktop application built in Rust that gives you a gra
 
 ## What Bridgex Does
 
-Bridgex converts documents into clean Markdown text using the Markitdown-rs library, then opens that text directly in a built-in code editor. You can review and refine the output, then save a `.md` file wherever you like — no configuration required for basic use.
+Bridgex converts documents into clean Markdown text using the Markitdown crate, then opens that text in a built-in code editor. You can review and refine the output, then save a `.md` file wherever you like — no configuration required for basic use.
 
 <CardGroup cols={3}>
   <Card title="Broad Format Support" icon="files">
     Convert Excel, Word, PowerPoint, PDF, HTML, CSV, RSS/XML, ZIP archives, and JPEG images.
   </Card>
-  <Card title="Side-by-Side Preview" icon="table-columns">
-    Edit Markdown in the left pane and see the rendered preview update in real time on the right.
+  <Card title="Built-In Editor" icon="pen-to-square">
+    Edit the converted Markdown directly in the app before saving it to disk.
   </Card>
   <Card title="LLM Image Descriptions" icon="image">
     Attach an OpenAI, Gemini, or Deepseek API key to get AI-generated alt-text for JPEG images.
@@ -47,7 +47,7 @@ Bridgex converts documents into clean Markdown text using the Markitdown-rs libr
     Launch the app and press **Ctrl+O** (or use **File → Open**) to pick a supported file. Bridgex converts it to Markdown instantly.
   </Step>
   <Step title="Edit and Save">
-    Review the output in the editor pane, make any changes, then press **Ctrl+S** (or **File → Save**) to write the `.md` file to disk.
+    Review the output in the editor, make any changes, then press **Ctrl+S** (or **File → Save**) to write the `.md` file to disk.
   </Step>
 </Steps>
 

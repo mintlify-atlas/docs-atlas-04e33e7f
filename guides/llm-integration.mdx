@@ -15,7 +15,7 @@ Bridgex integrates with large language model providers to generate natural-langu
 When you open a JPEG file with a valid LLM configuration active, the conversion pipeline in `converter.rs` works as follows:
 
 1. Markitdown-rs performs its standard JPEG conversion (typically minimal text output).
-2. If the result does not already contain a `# Description:` heading, Bridgex asynchronously calls the configured LLM provider to generate a description of the image.
+2. If the result does not already contain a `# Description:` heading, Bridgex synchronously calls the configured LLM provider to generate a description of the image (the call blocks until a response is received or the request fails).
 3. The description is appended to the editor content under the heading `# Description:`.
 
 The final Markdown in your editor looks like this:
@@ -26,11 +26,10 @@ A close-up photograph of a red maple leaf resting on wet pavement,
 with shallow depth of field and soft bokeh in the background.
 ```
 
-If the image conversion and the LLM call both produce no result, Bridgex falls back to the description text directly:
+If the JPEG conversion produces no content and the LLM call also fails (or LLM is not configured), Bridgex writes the following error into the editor instead:
 
-```markdown
-# Description:
-<AI-generated text here>
+```
+Conversion failed for JPEG image. Please check the image file and your LLM configuration.
 ```
 
 ## Supported Providers and Models

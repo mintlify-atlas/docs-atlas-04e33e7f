@@ -12,7 +12,7 @@ The main window requires a minimum of **900 × 700 pixels** to render correctly.
 
 <CardGroup cols={2}>
   <Card title="Left Pane — Editor" icon="code">
-    A `CodeEditor` component occupying **50% of the window width**. Displays Markdown source with syntax highlighting, rendered using the **JetBrains Mono / Consolas** font family at 14 px. The line gutter is hidden for a cleaner look. The editor receives auto-focus on launch so you can start typing immediately. Background color is `rgb(20, 24, 34)` (GitHub Dark surface secondary).
+    A `CodeEditor` component occupying **50% of the window width**. Displays Markdown source with syntax highlighting, rendered using the **Consolas** font family at 14 px. The line gutter is hidden for a cleaner look. The editor receives auto-focus on launch so you can start typing immediately. Background color is `rgb(20, 24, 34)` (GitHub Dark surface secondary).
   </Card>
   <Card title="Right Pane — Preview" icon="eye">
     A `MarkdownViewer` component occupying the other **50% of the window width**. Renders the current editor content as formatted Markdown in real time. The viewer is wrapped in a `ScrollView` so long documents scroll independently. Code blocks use a dark background of `rgb(30, 34, 45)`.
@@ -59,7 +59,6 @@ Opened with **Help → About** or `Ctrl+I`.
 
 The About popup displays:
 
-- The **Bridgex logo** image centered at the top
 - A short **description**: *"(GUI) Graphical interface for converting files to Markdown. Its objective is to simplify access to the Markitdown library through a straightforward, modular visual experience."*
 - Extended text describing supported formats and the intended workflow
 - **Version**: `0.2.1` (read from `CARGO_PKG_VERSION` at compile time)
